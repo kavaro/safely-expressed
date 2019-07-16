@@ -1,0 +1,37 @@
+{
+  "name": "safely-expressed",
+  "version": "0.0.1",
+  "main": "dist/index.js",
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/core": "^7.4.3",
+    "@babel/preset-env": "^7.4.3",
+    "@babel/preset-react": "^7.0.0",
+    "babel-jest": "^24.7.1",
+    "jest": "^24.7.1",
+    "jest-cli": "^24.7.1",
+    "rollup": "^1.9.0",
+    "rollup-plugin-babel": "^4.3.2",
+    "rollup-plugin-json": "^4.0.0",
+    "rollup-plugin-node-resolve": "^4.2.1",
+    "rollup-plugin-terser": "^4.0.4"
+  },
+  "scripts": {
+    "clean": "rm -rf dist/*",
+    "start": "rollup -w -c rollup.config.dev.js",
+    "build": "yarn clean && rollup -c rollup.config.prod.js",
+    "test": "jest --watchAll",
+    "coverage": "jest --coverage",
+    "preversion": "yarn test && yarn build",
+    "postversion": "git push --tags && yarn publish --tag latest && git push && echo \"Successfully released version $npm_package_version!\"",
+    "publish-minor": "yarn version --minor",
+    "publish-major": "yarn version --major",
+    "publish-patch": "yarn version --patch",
+    "nearley": "nearleyc src/grammar.ne | sed -e '1,3d' | sed -e 's/var grammar =/export default/' | sed -e '/if (typeof module !==/,$d' > src/grammar.js"
+  },
+  "dependencies": {
+    "esm": "^3.2.25",
+    "moo": "^0.5.0",
+    "nearley": "^2.16.0"
+  }
+}
