@@ -26,9 +26,6 @@ export default function toString(ast) {
     if (!before && node) {
       let result
       switch (node.type) {
-        //case 'CommaExpression':
-        //  result = node.expressions.join(', ')
-        //  break
         case 'MemberExpression':
           result = node.computed ? `${node.object}[${node.property}]` : `${node.object}.${node.property}`
           break
@@ -49,7 +46,7 @@ export default function toString(ast) {
           result = `${node.left} ${node.op} ${node.right}`
           break
         case 'RangeExpression':
-          result = `(${node.left} TO ${node.right})`
+          result = `[${node.left}...${node.right}]`
           break
         case 'ArrowFunction':
           result = `(${node.args.join(', ')}) => ${node.expression}`

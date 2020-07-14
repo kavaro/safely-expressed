@@ -135,8 +135,7 @@ describe('parseExpression', () => {
     expect(toString(parseExpression('this'))).toBe('THIS')
   })
   it('parses range', () => {
-    expect(toString(parseExpression('(10 TO 15)'))).toBe('(10 TO 15)')
-    expect(toString(parseExpression('(a - b TO a + b)'))).toBe('(a - b TO a + b)')
+    expect(toString(parseExpression('[10...15]'))).toBe('[10...15]')
   })
   it('parses array', () => {
     expect(toString(parseExpression('[]'))).toBe('[]')

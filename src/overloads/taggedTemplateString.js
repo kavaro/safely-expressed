@@ -7,7 +7,7 @@ export default function overloadTaggedTemplateString() {
     node => node && node.type === 'TemplateString' && node.tag,
     node => {
       const { strings, expressions } = node
-      node = [{
+      return [{
         type: 'ArrayExpression',
         items: strings.map(string => ({
           type: 'String',
@@ -18,7 +18,7 @@ export default function overloadTaggedTemplateString() {
           offset: 1
         }))
       }].concat(expressions)
-      return node
-    }
+    },
+    false
   )
 }

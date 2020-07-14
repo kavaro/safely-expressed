@@ -19,7 +19,6 @@ export default function toJS(ast) {
         result.push(`'${escape(string, "'")}'`)
         const expression = expressions[i]
         if (expression) {
-          //result.push(`((function() {${expression}})())`)
           result.push(`(${expression})`)
         }
       })
@@ -93,16 +92,20 @@ export default function toJS(ast) {
     return { ast, globals }
   }
 
-  function generate({ast, globals}) {
+  const logicalExpressions = {
+    AND: '&&',
+    EN: '&&',
+    OR: '||',
+    OF: '||'
+  }
+
+  function generate({ ast, globals }) {
     const code = visit(ast, (before, node) => {
       if (node) {
         if (before) {
         } else {
           let result
           switch (node.type) {
-            //case 'CommaExpression':
-            //  result = node.expressions.join(', ')
-            //  break
             case 'MemberExpression':
               result = node.computed ? `${node.object}[${node.property}]` : `${node.object}.${node.property}`
               break
@@ -110,7 +113,7 @@ export default function toJS(ast) {
               result = node.computed ? `${node.object}[${node.property}](${node.args.join(', ')})` : `${node.object}.${node.property}(${node.args.join(', ')})`
               break
             case 'CallExpression':
-              result = `${node.isGlobal ? `self.${node.object}` : node.object}(${node.args.join(', ')})`
+              result = `${node.isGlobal ? `${node.isOverload ? 'this' : '_'}.${node.object}` : node.object}(${node.args.join(', ')})`
               break
             case 'UnaryExpression':
               result = `${node.op}${node.right}`
@@ -119,7 +122,7 @@ export default function toJS(ast) {
               result = `${node.test} ? ${node.consequence} : ${node.alternate}`
               break
             case 'LogicalExpression':
-              result = `${node.left} ${node.op} ${node.right}`
+              result = `${node.left} ${logicalExpressions[node.op] || node.op} ${node.right}`
               break
             case 'BinaryExpression':
               result = `${node.left} ${node.op} ${node.right}`
@@ -130,7 +133,7 @@ export default function toJS(ast) {
               result = `function (${node.args.join(', ')}) { return ${node.expression}; }`
               break
             case 'Declaration':
-              result = `function ${node.name.value}(${node.args.join(', ')}) { return ${node.expression}; }`
+              result = `const ${node.name.value} = (function (${node.args.join(', ')}) { return ${node.expression}; }).bind(this);`
               break
             case 'ArrayExpression':
               result = `[${node.items.join(', ')}]`
@@ -142,9 +145,9 @@ export default function toJS(ast) {
               result = `{${node.properties.join(', ')}}`
               break
             case 'Case':
-              result = node.left 
-                ? {code: `($c === ${node.left}) ? ${node.right}`, default: false} 
-                : {code: `${node.right}`, default: true}
+              result = node.left
+                ? { code: `($c === ${node.left}) ? ${node.right}`, default: false }
+                : { code: `${node.right}`, default: true }
               break
             case 'Cases':
               const defaultCode = node.cases.filter(Case => Case.default).map(Case => Case.code)[0] || 'undefined'
@@ -152,10 +155,10 @@ export default function toJS(ast) {
               result = conditionsCode.join(' : ')
               break
             case 'SelectExpression':
-              result = `((function() { var $c = ${node.condition}; return ${node.cases} })())`
+              result = `((function() { var $c = ${node.condition}; return ${node.cases} }).call(this))`
               break
             case 'Main':
-              result = `(function() {${node.declarations.join('')}  return ${node.expression || 'undefined'};})()`
+              result = `(function() {${node.declarations.join('')}  return ${node.expression || 'undefined'};}).call(this)`
               break
             case 'String':
               result = node.text
@@ -168,20 +171,21 @@ export default function toJS(ast) {
               break
             default:
               if (node.type === 'Literal' && node.value === 'THIS') {
-                return 'self'
+                return '_'
               }
               result =
                 node.value === null ? 'null'
                   : node.value === true ? 'true'
                     : node.value === false ? 'false'
-                      : node.value.toString()
+                      : node.value === undefined ? 'undefined'
+                        : node.value.toString()
           }
           return generateParenthesis(node, result)
         }
         return node
       }
     })
-    return {code, globals: Object.keys(globals)}
+    return { code, globals: Object.keys(globals) }
   }
 
   return generate(transform(ast))

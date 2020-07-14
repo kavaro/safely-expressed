@@ -33,12 +33,6 @@ export default function visit(node, fn, options = {}, parents = [], parent) {
           }
         }
         break
-      //case 'CommaExpression':
-      //  node = {
-      //    ...node,
-      //    expressions: node.expressions.map(expression => visit(expression, fn, options, parents, { key: 'expressions', node })).filter(isDefined)
-      //  }
-      //  break
       case 'MemberExpression':
         node = {
           ...node,

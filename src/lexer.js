@@ -14,7 +14,7 @@ export default moo.compile({
       type: moo.keywords({ // if IDENTIFIER is one of these keywords then use the keyword key instead 
         INSTANCE_OF: upperCase(['instanceof', 'instance_of']),
         IN: upperCase(['in']),
-        TO: upperCase(['to', 'tot']),
+        BETWEEN: upperCase(['between', 'tussen']),
         TRUE: upperCase(['true', 'waar']),
         FALSE: upperCase(['false', 'onwaar']),
         NULL: upperCase(['null', 'nul']),
@@ -29,6 +29,7 @@ export default moo.compile({
         DEFAULT: upperCase(['default', 'anders'])
       })
     },
+    TO: '...',
     LOGICAL_OR: '||',
     LOGICAL_AND: '&&',
     BITWISE_OR: '|',

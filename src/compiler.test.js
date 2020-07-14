@@ -1,10 +1,11 @@
-import { 
-  createCompiler, 
-  overloadBinaryExpression, 
+import { isNumber } from 'lodash/lang'
+import {
+  createCompiler,
+  overloadBinaryExpression,
   overloadLogicalExpression,
-  overloadMemberExpression, 
+  overloadMemberExpression,
   overloadRangeExpression,
-  overloadTaggedTemplateString, 
+  overloadTaggedTemplateString,
   overloadUnaryExpression
 } from './index'
 
@@ -178,36 +179,32 @@ describe('compiler', () => {
     expect(fn({ op: 'decrement', value: 1 })).toBe(0)
   })
   it('should overload binary expression', () => {
-    const compile = createCompiler([overloadBinaryExpression({'+': '$add'})])
+    const compile = createCompiler([overloadBinaryExpression({ '+': '$add' })], { $add: (left, right) => `${left}-${right}` })
     const fn = compile(`a + b`)
     expect(fn({
-      $add: (left, right) => `${left}-${right}`,
       a: 'A',
       b: 'B'
     })).toBe('A-B')
   })
   it('should overload logical expression', () => {
-    const compile = createCompiler([overloadLogicalExpression({'&&': '$and'})])
+    const compile = createCompiler([overloadLogicalExpression({ '&&': '$and' })], { $and: (left, right) => `${left}-${right}` })
     const fn = compile(`a && b`)
     expect(fn({
-      $and: (left, right) => `${left}-${right}`,
       a: 'A',
       b: 'B'
     })).toBe('A-B')
   })
   it('should overload member expression', () => {
-    const compile = createCompiler([overloadMemberExpression('$get')])
+    const compile = createCompiler([overloadMemberExpression('$get')], { $get: (object, property) => object[property] })
     const fn = compile(`a.b + a['b']`)
     expect(fn({
-      $get: (object, property) => object[property],
-      a: {b: 'AB'}
+      a: { b: 'AB' }
     })).toBe('ABAB')
   })
   it('should overload range expression', () => {
-    const compile = createCompiler([overloadRangeExpression('$range')])
-    const fn = compile(`(a TOT b)`)
+    const compile = createCompiler([overloadRangeExpression('$range')], { $range: (left, right) => `${left}-${right}` })
+    const fn = compile(`[ a...b ]`)
     expect(fn({
-      $range: (left, right) => `${left}-${right}`,
       a: 'A',
       b: 'B'
     })).toBe('A-B')
@@ -227,11 +224,53 @@ describe('compiler', () => {
     })).toBe('aBcD')
   })
   it('should overload unary expression', () => {
-    const compile = createCompiler([overloadUnaryExpression({'!': '$not'})])
+    const compile = createCompiler([overloadUnaryExpression({ '!': '$not' })], { $not: (right, op) => `${op}-${right}` })
     const fn = compile(`!a`)
     expect(fn({
-      $not: (right, op) => `${op}-${right}`,
       a: 'A',
     })).toBe('!-A')
+  })
+  it('should compile object expression', () => {
+    const compile = createCompiler(
+      [
+        overloadMemberExpression('$get')
+      ],
+      {
+        $get: (object, property) => object[property]
+      }
+    )
+    const fn = compile(`
+    {
+      firstname: name.first,
+      lastname: name.last,
+      name: \`{name.first} {name.last}\`,
+      age: year - yearOfBirth
+    }
+    `)
+    expect(fn({
+      name: { first: 'Karl', last: 'Van Rompaey' },
+      yearOfBirth: 1966,
+      year: 2019
+    })).toEqual({
+      firstname: 'Karl',
+      lastname: 'Van Rompaey',
+      name: 'Karl Van Rompaey',
+      age: 53
+    })
+  })
+  it('should validate', () => {
+    const compile = createCompiler([
+      overloadMemberExpression('$get')
+    ],
+    {
+      $get: (object, property) => object.hasOwnProperty(property) ? object[property] : undefined
+    })
+    const fn = compile(`
+      isPositive(value) => value >= 0;
+      isInteger(value) => Math.floor(value) === value;
+      positiveInteger(value) => isNumber(value) && isPositive(value) && isInteger(value);
+      positiveInteger(value)
+    `)
+    expect(fn({ value: 0, isNumber, Math })).toBe(true)
   })
 })

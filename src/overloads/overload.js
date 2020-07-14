@@ -1,6 +1,6 @@
 import { isFunction } from 'lodash/lang'
 
-export default function overload(method, type, args) {
+export default function overload(method, type, args, isOverload) {
   const match = node => isFunction(type) ? type(node) : node && node.type === type
   const exec = node => {
     const { line, col, offset } = node
@@ -17,7 +17,8 @@ export default function overload(method, type, args) {
           col,
           offset
         },
-        args: isFunction(args) ? args(node) : args.map(key => node[key])
+        args: isFunction(args) ? args(node) : args.map(key => node[key]),
+        isOverload: isFunction(isOverload) ? isOverload(node) : isOverload
       }
     }
     return node

@@ -19,7 +19,7 @@
   "scripts": {
     "clean": "rm -rf dist/*",
     "start": "rollup -w -c rollup.config.dev.js",
-    "build": "yarn clean && rollup -c rollup.config.prod.js",
+    "build": "yarn clean && yarn nearley && rollup -c rollup.config.prod.js",
     "test": "jest --watchAll",
     "coverage": "jest --coverage",
     "preversion": "yarn test && yarn build",

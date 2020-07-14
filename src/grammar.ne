@@ -178,7 +178,7 @@ Case ->
   | DEFAULT _ Expression                  {% d => createCase(null, d[2]) %}
 
 Range ->
-    "(" _ Expression _ TO _ Expression ")" {% d => createRangeExpression(d[2], d[6]) %} # (100 TO 200) range from 100 to 200
+    "[" _ Expression TO Expression _ "]" {% d => createRangeExpression(d[2], d[4]) %} #  [100...200] 
 
 Array ->
     "[" _ CommaExpression _ "]"            {% d => createArrayExpression(d[2].expressions) %}       # [100, 200] array
@@ -201,6 +201,8 @@ Objectkey ->
   | NUMBER          {% d => [Object.assign({}, d[0], {type: 'String', value: d[0].text, text: `'${d[0].text}'`}), d[0]] %}
   | QUOTED_STRING   {% d => [d[0], d[0]] %}
 
+BETWEEN        -> %BETWEEN {% d => 'BETWEEN' %} 
+FROM           -> %FROM {% d => 'FROM' %} 
 TO             -> %TO {% d => 'TO' %} 
 TRUE           -> %TRUE {% d => createLiteral(d[0], true) %}
 FALSE          -> %FALSE {% d => createLiteral(d[0], false) %}
@@ -228,6 +230,7 @@ LTGTE ->
   | %GT  {% id %}
   | %GTE {% id %}
   | %IN  {% d => 'IN' %}
+  | %BETWEEN  {% d => 'BETWEEN' %}
   | %INSTANCE_OF {% d => 'INSTANCE_OF' %}
 
 BITWISE_SHIFT ->

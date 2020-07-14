@@ -7,14 +7,14 @@ describe('toJS', () => {
       // and another line
       + 20
     `))).toEqual({
-      code: '(function() {  return 10 + 20;})()',
+      code: '(function() {  return 10 + 20;}).call(this)',
       globals: []
     })
   })
   it('should compile with line comment without \n', () => {
     expect(toJS(parseExpression(`
       10 + 20 // This is a test`))).toEqual({
-      code: '(function() {  return 10 + 20;})()',
+      code: '(function() {  return 10 + 20;}).call(this)',
       globals: []
     })
 
@@ -24,13 +24,13 @@ describe('toJS', () => {
       10 /* This is a test
       and another line */ + 20
     `))).toEqual({
-      code: '(function() {  return 10 + 20;})()',
+      code: '(function() {  return 10 + 20;}).call(this)',
       globals: []
     })
   })
   it('should compile empty string', () => {
     expect(toJS(parseExpression(``))).toEqual({
-      code: '(function() {  return undefined;})()',
+      code: '(function() {  return undefined;}).call(this)',
       globals: []
     })
   })
@@ -38,13 +38,13 @@ describe('toJS', () => {
     expect(toJS(parseExpression(`
       prijs.min > 100000 EN prijs["max"] < 150000
     `))).toEqual({
-      code: `(function() {  return prijs.min > 100000 && prijs["max"] < 150000;})()`,
+      code: `(function() {  return prijs.min > 100000 && prijs["max"] < 150000;}).call(this)`,
       globals: ['prijs']
     })
     expect(toJS(parseExpression(`
       Min(a, b) => a < b ? a : b; Max(a, b) => a > b ? a : b; Min(prijs.min, prijs.max) > 100000 EN Max(prijs.min, prijs.max) < 150000
     `))).toEqual({
-      code: `(function() {function Min(a, b) { return a < b ? a : b; }function Max(a, b) { return a > b ? a : b; }  return Min(prijs.min, prijs.max) > 100000 && Max(prijs.min, prijs.max) < 150000;})()`,
+      code: `(function() {const Min = (function (a, b) { return a < b ? a : b; }).bind(this);const Max = (function (a, b) { return a > b ? a : b; }).bind(this);  return Min(prijs.min, prijs.max) > 100000 && Max(prijs.min, prijs.max) < 150000;}).call(this)`,
       globals: ['prijs']
     })
     expect(toJS(parseExpression(`
@@ -53,7 +53,7 @@ describe('toJS', () => {
         beds: beds
       }
     `))).toEqual({
-      code: `(function() {  return {'prijs': prijs, 'beds': beds};})()`,
+      code: `(function() {  return {'prijs': prijs, 'beds': beds};}).call(this)`,
       globals: ['prijs', 'beds']
     })
     expect(toJS(parseExpression(`
@@ -62,7 +62,7 @@ describe('toJS', () => {
         beds
       }
     `))).toEqual({
-      code: `(function() {  return {'prijs': prijs, 'beds': beds};})()`,
+      code: `(function() {  return {'prijs': prijs, 'beds': beds};}).call(this)`,
       globals: ['prijs', 'beds']
     })
     expect(toJS(parseExpression(`
@@ -71,7 +71,7 @@ describe('toJS', () => {
         [beds]
       }
     `))).toEqual({
-      code: `(function() {  return {[prijs + 1]: prijs + 1, [beds]: beds};})()`,
+      code: `(function() {  return {[prijs + 1]: prijs + 1, [beds]: beds};}).call(this)`,
       globals: ['prijs', 'beds']
     })
     expect(toJS(parseExpression(`
@@ -80,27 +80,27 @@ describe('toJS', () => {
         [beds]
       }
     `))).toEqual({
-      code: `(function() {  return {[prijs + 1]: true, [beds]: beds};})()`,
+      code: `(function() {  return {[prijs + 1]: true, [beds]: beds};}).call(this)`,
       globals: ['prijs', 'beds']
     })
     expect(toJS(parseExpression(`
       db.properties.filter((property) => property.prijs > 100 EN property.slaapkamers = 2)
     `))).toEqual({
-      code: `(function() {  return db.properties.filter(function (property) { return property.prijs > 100 && property.slaapkamers = 2; });})()`,
+      code: `(function() {  return db.properties.filter(function (property) { return property.prijs > 100 && property.slaapkamers = 2; });}).call(this)`,
       globals: ['db']
     })
   })
   it('should compile parenthesis', () => {
     expect(toJS(parseExpression(`a + (b - c)`))).toEqual({
-      code: '(function() {  return a + (b - c);})()',
+      code: '(function() {  return a + (b - c);}).call(this)',
       globals: ['a', 'b', 'c']
     })
   })
   it('should compile array', () => {
-    expect(toJS(parseExpression('[0, 1]'))).toEqual({ code: '(function() {  return [0, 1];})()', globals: [] })
+    expect(toJS(parseExpression('[0, 1]'))).toEqual({ code: '(function() {  return [0, 1];}).call(this)', globals: [] })
   })
   it('should compile empty array', () => {
-    expect(toJS(parseExpression('[]'))).toEqual({ code: '(function() {  return [];})()', globals: [] })
+    expect(toJS(parseExpression('[]'))).toEqual({ code: '(function() {  return [];}).call(this)', globals: [] })
   })
   it('should compile select with when and default', () => {
     expect(toJS(parseExpression(`
@@ -110,7 +110,7 @@ describe('toJS', () => {
         DEFAULT 'c'
       }
     `))).toEqual({
-      code: "(function() {  return ((function() { var $c = n; return ($c === 0) ? 'a' : ($c === 1) ? 'b' : 'c' })());})()",
+      code: "(function() {  return ((function() { var $c = n; return ($c === 0) ? 'a' : ($c === 1) ? 'b' : 'c' }).call(this));}).call(this)",
       globals: ['n']
     })
   })
@@ -121,7 +121,7 @@ describe('toJS', () => {
         WHEN 1 THEN 'b'
       }
     `))).toEqual({
-      code: "(function() {  return ((function() { var $c = n; return ($c === 0) ? 'a' : ($c === 1) ? 'b' : undefined })());})()",
+      code: "(function() {  return ((function() { var $c = n; return ($c === 0) ? 'a' : ($c === 1) ? 'b' : undefined }).call(this));}).call(this)",
       globals: ['n']
     })
   })
@@ -131,7 +131,7 @@ describe('toJS', () => {
         DEFAULT 'd'
       }
     `))).toEqual({
-      code: "(function() {  return ((function() { var $c = n; return 'd' })());})()",
+      code: "(function() {  return ((function() { var $c = n; return 'd' }).call(this));}).call(this)",
       globals: ['n']
     })
   })
@@ -140,12 +140,12 @@ describe('toJS', () => {
       SELECT(n) {
       }
     `))).toEqual({
-      code: "(function() {  return ((function() { var $c = n; return undefined })());})()",
+      code: "(function() {  return ((function() { var $c = n; return undefined }).call(this));}).call(this)",
       globals: ['n']
     })
   })
   it('should throw on range expression', () => {
-    expect(() => toJS(parseExpression(`(10 TOT 100)`)))
+    expect(() => toJS(parseExpression(`[10...100]`)))
       .toThrow(new Error(`RangeExpression requires overloadRangeExpression transform`))
   })
   it('should throw on tagged template string', () => {
@@ -154,19 +154,19 @@ describe('toJS', () => {
   })
   it('should compile template string', () => {
     expect(toJS(parseExpression('`My name is`'))).toEqual({
-      code: `(function() {  return 'My name is';})()`,
+      code: `(function() {  return 'My name is';}).call(this)`,
       globals: []
     })
   })
   it('should compile template string with interpolation', () => {
     expect(toJS(parseExpression('`Welcome {name} to`'))).toEqual({
-      code: `(function() {  return 'Welcome ' + ((function() {  return name;})()) + ' to';})()`,
+      code: `(function() {  return 'Welcome ' + ((function() {  return name;}).call(this)) + ' to';}).call(this)`,
       globals: ['name']
     })
   })
   it('should compile template string with interpolation that contains declaration', () => {
     expect(toJS(parseExpression('`Welcome {Min(a, b) => a < b ? a : b; Min(low, high)} to`'))).toEqual({
-      code: `(function() {  return 'Welcome ' + ((function() {function Min(a, b) { return a < b ? a : b; }  return Min(low, high);})()) + ' to';})()`,
+      code: `(function() {  return 'Welcome ' + ((function() {const Min = (function (a, b) { return a < b ? a : b; }).bind(this);  return Min(low, high);}).call(this)) + ' to';}).call(this)`,
       globals: ['low', 'high']
     })
   })

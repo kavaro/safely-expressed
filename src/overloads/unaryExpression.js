@@ -1,6 +1,5 @@
 import operatorExpression from './operatorExpression'
 import escape from '../escape'
-import {isString} from 'lodash/lang'
 
 export default function overloadUnaryExpression(ops) {
   return operatorExpression(

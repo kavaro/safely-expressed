@@ -1,10 +1,8 @@
-export class Range {
+export default class Range {
   constructor(left, right) {
-    this.from = Math.min(left, right)
-    this.to = Math.max(left, right)
+    const [min, max] = left > right ? [right, left] : [left, right]
+    this.min = min
+    this.max = max
   }
 }
 
-export default function $range(left, right) {
-  return new Range(left, right)
-}

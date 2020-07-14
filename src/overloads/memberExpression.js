@@ -9,6 +9,7 @@ export default function overloadMemberExpression(methodName, computed) {
       node.computed
         ? node.property
         : { ...node.property, type: 'String', value: node.property.value, text: `'${node.property.value}'` }
-    ]
+    ],
+    true
   )
 }

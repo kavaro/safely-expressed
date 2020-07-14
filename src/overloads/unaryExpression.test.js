@@ -3,19 +3,19 @@ import { parseExpression, toJS, transform, overloadUnaryExpression } from '../in
 describe('overload UnaryExpression', () => {
   it('should overload UnaryExpression in ops object', () => {
     expect(toJS(transform(parseExpression(`!prijs`), [overloadUnaryExpression({'!': '$not'})]))).toEqual({
-      code: `(function() {  return self.$not(prijs, '!');})()`,
+      code: `(function() {  return this.$not(prijs, '!');}).call(this)`,
       globals: ['prijs']
     })
     expect(toJS(transform(parseExpression(`-prijs`), [overloadUnaryExpression({'!': '$not'})]))).toEqual({
-      code: `(function() {  return -prijs;})()`,
+      code: `(function() {  return -prijs;}).call(this)`,
       globals: ['prijs']
     })
     expect(toJS(transform(parseExpression(`-prijs`), [overloadUnaryExpression({'-': '$minus'})]))).toEqual({
-      code: `(function() {  return self.$minus(prijs, '-');})()`,
+      code: `(function() {  return this.$minus(prijs, '-');}).call(this)`,
       globals: ['prijs']
     })
     expect(toJS(transform(parseExpression(`+prijs`), [overloadUnaryExpression({'+': '$plus'})]))).toEqual({
-      code: `(function() {  return self.$plus(prijs, '+');})()`,
+      code: `(function() {  return this.$plus(prijs, '+');}).call(this)`,
       globals: ['prijs']
     })
   })
